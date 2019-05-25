@@ -8,6 +8,18 @@ import {
   FlatList
 } from 'react-native';
 
+class Row extends React.Component{
+  render(){
+    const {desc, price} = this.props;
+    return(
+      <View style={styles.cardRow}>
+        <Text>{desc}</Text>
+        <Text>RM {price}</Text>
+      </View>
+    );
+  }
+}
+
 export default class HomeScreen extends React.Component {
   static navigationOptions = {
     title: 'Spending',
@@ -28,11 +40,20 @@ export default class HomeScreen extends React.Component {
         date: new Date()
       }
     ]
-    const total = testData.map(item => item.amount)
+
+    let totalArr =0;
+
+    for (let i = 0; i < testData.length; i++){
+      totalArr = totalArr + testData[i].amount
+    }
+
+    const total = testData.map(item => item.amount) // [1,2]
     const totalAmount = total.reduce((accumulator, currentValue) => accumulator + currentValue)
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+          <Row desc={"Item1"} price={"100"}/>
+          <Row desc={"Item2"} price={"200"}/>
           <FlatList
             data={testData}
             renderItem={({ item }) =>
@@ -50,6 +71,8 @@ export default class HomeScreen extends React.Component {
         <View style={styles.tabBarInfoContainer}>
           <Text style={{fontWeight: 'bold'}}>Total</Text>
           <Text style={{fontWeight: 'bold'}}>RM {totalAmount}</Text>
+
+          <Text style={{fontWeight: 'bold'}}>Kobe - RM {totalArr}</Text>
         </View>
       </View>
     );

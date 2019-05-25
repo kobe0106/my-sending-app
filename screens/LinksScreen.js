@@ -19,12 +19,13 @@ export default class LinksScreen extends React.Component {
     title: 'Add Item',
   };
 
-  state = { amount: '', desc: '', date: new Date(), image: null }
+  state = { userInput: '123', amount: '', desc: '', date: new Date(), image: null }
 
   render() {
     const { image } = this.state;
     return (
       <View style={styles.container}>
+        <Text>{this.state.userInput}</Text>
         <ScrollView>
           <View style={styles.row}>
             <Text style={{ fontSize: 18 }}>Price</Text>
@@ -39,12 +40,20 @@ export default class LinksScreen extends React.Component {
             </View>
           </View>
           <View style={styles.row}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TextInput
+                style={styles.textInput}
+                onChangeText={(userInput) => this.setState({ userInput })}
+                value={this.state.text}
+              />
+            </View>
+          </View>
+          <View style={styles.row}>
              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                <TextInput
                  style={[styles.textInput, {flex: 1}]}
                  onChangeText={(desc) => this.setState({ desc })}
                  value={this.state.text}
-                 keyboardType='numeric'
                  placeholder="Description"
                />
              </View>
