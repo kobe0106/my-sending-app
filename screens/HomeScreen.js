@@ -4,10 +4,33 @@ import {
   StyleSheet,
   ScrollView,
   Text,
-  Platform,
-  FlatList
-} from 'react-native';
+  FlatList,
+  Image,
+  Platform
+} from "react-native";
 import { Firebase } from "../api/config.js";
+
+const Card = ({ amount = 0, item = "no-name", children, image }) => (
+  <View
+    style={{
+      borderWidth: 0.5,
+      borderColor: "#d6d7da",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 10
+    }}
+  >
+    <Text>{item}</Text>
+    <Text>RM {amount}</Text>
+
+    {children ? <Text>RM {children}</Text> : null}
+    {children ? <Text>RM test {children}</Text> : null}
+    <Image style={{ width: 40, height: 40 }} source={{ uri: image }} />
+
+    {/* {children && <Text>RM {children}</Text>} */}
+  </View>
+);
 
 class Row extends React.Component{
   render(){
@@ -50,16 +73,18 @@ export default class HomeScreen extends React.Component {
           <Row desc={"Item2"} price={"200"}/> */}
           <FlatList
             data={this.state.items}
-            renderItem={({ item }) =>
-              <View style={styles.card}>
-                <View style={styles.cardDate}>
-                  <Text>{JSON.stringify(item.date)}</Text>
-                </View>
-                <View style={styles.cardRow}>
-                  <Text>{item.desc}</Text>
-                  <Text>RM {JSON.stringify(item.amount)}</Text>
-                </View>
-              </View>
+            renderItem={({ item }) => (
+              <Card amount={item.amount} item={item.desc} image={item.imageURL} />
+            )
+              // <View style={styles.card}>
+              //   <View style={styles.cardDate}>
+              //     <Text>{JSON.stringify(item.date)}</Text>
+              //   </View>
+              //   <View style={styles.cardRow}>
+              //     <Text>{item.desc}</Text>
+              //     <Text>RM {JSON.stringify(item.amount)}</Text>
+              //   </View>
+              // </View>
             }/>
         </ScrollView>
         <View style={styles.tabBarInfoContainer}>

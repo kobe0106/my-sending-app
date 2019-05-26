@@ -14,26 +14,97 @@ import {
 import { TextInput } from 'react-native-gesture-handler';
 import { ImagePicker, Permissions } from "expo";
 import { Firebase } from "../api/config.js";
+import uuid from "uuid";
 
 export default class LinksScreen extends React.Component {
-  static navigationOptions = {
-    title: 'Add Item',
+  state = {date: new Date(), desc: 'ABC', amount: 1}
+
+  handleAddItem = myData => {
+    // Firebase dont take in date object?
+    // myData.date = myData.date.toLocaleDateString();
+    const { imageURL } = this.state;
+    Firebase.database()
+      .ref("users/joel")
+      .push({
+        desc: this.state.desc,
+        amount: Number(this.state.amount),
+        date: this.state.date,
+        imageURL: imageURL
+      });
+
+    // this.props.navigation.navigate("Home", { test: "some data from link screen" });
   };
 
-  state = { userInput: '123', amount: '', desc: '', date: new Date(), image: null }
+  pickImage = async () => {
+    // Permissions.askAsync(Permissions.CAMERA)
+    //   .then(status => {
+    //     if (status === "granted") {
+    //       return true;
+    //     } else {
+    //       return false;
+    //     }
+    //   })
+    //   .then(data => {
+    //     console.log(data)
+    //   });
 
-  handleAddItem = () => {
-    Firebase.database().ref('users/' + 'joel' + '/items').push().set(
-      {
-        amount: Number(this.state.amount),
-        desc: this.state.desc,
-        date: this.state.date.toLocaleDateString()
+    // Ask for permission
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    if (status === "granted") {
+      // Do camera stuff
+      let result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [4, 3]
+      });
+
+      if (!result.cancelled) {
+        this.setState({ image: result.uri });
+
+        // Uploading part
+        try {
+          const imageURL = await this.uploadImageAsync(result.uri);
+          this.setState({ imageURL });
+        } catch (err) {
+          console.error(err);
+        }
       }
-    )
-  }
+    } else {
+      // Permission denied
+      throw new Error("Camera permission not granted");
+    }
+  };
 
+  uploadImageAsync = async uri => {
+    // Why are we using XMLHttpRequest? See:
+    // https://github.com/expo/expo/issues/2402#issuecomment-443726662
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        resolve(xhr.response);
+      };
+      xhr.onerror = function(e) {
+        console.log(e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
+      xhr.send(null);
+    });
+
+    const ref = Firebase.storage()
+      .ref()
+      .child(uuid.v4());
+    const snapshot = await ref.put(blob);
+
+    // We're done with the blob, close and release it
+    blob.close();
+
+    return await snapshot.ref.getDownloadURL();
+  };
+  
   render() {
     const { image } = this.state;
+    
     return (
       <View style={styles.container}>
         <Text>{this.state.userInput}</Text>
@@ -90,35 +161,20 @@ export default class LinksScreen extends React.Component {
              </View>
              <Button
                 title="Pick an image from camera roll"
-                onPress={async () => {
-                  // Ask for permission
-                  const { status } = await Permissions.askAsync(
-                    Permissions.CAMERA_ROLL
-                  );
-                  if (status === "granted") {
-                    // Do camera stuff
-                    let result = await ImagePicker.launchImageLibraryAsync({
-                      allowsEditing: true,
-                      aspect: [4, 3]
-                    });
-
-                    console.log(result);
-
-                    if (!result.cancelled) {
-                      this.setState({ image: result.uri });
-                    }
-                  } else {
-                    // Permission denied
-                    throw new Error("Camera permission not granted");
-                  }
-                }}
+                onPress={this.pickImage}
               />
-              {image && (
+              <Button
+            title="Get new location"
+            onPress={this.pickImage}
+          />
+
+          {image && (
                 <Image
                   source={{ uri: image }}
-                  style={{ width: 200, height: 200 }}
+                  style={{ width: 200, height: 200, alignSelf: "center" }}
                 />
-              )}
+                )}
+          {this.state.imageURL && <Text>{this.state.imageURL}</Text>}
            </View>
         </ScrollView>
         <TouchableOpacity onPress={this.handleAddItem} style={styles.tabBarStickyBottom}>
