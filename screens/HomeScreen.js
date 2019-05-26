@@ -7,6 +7,7 @@ import {
   Platform,
   FlatList
 } from 'react-native';
+import { Firebase } from "../api/config.js";
 
 class Row extends React.Component{
   render(){
@@ -25,41 +26,34 @@ export default class HomeScreen extends React.Component {
     title: 'Spending',
   };
   
+  constructor(props) {
+    super(props)
+    this.state = { items: [{ key: '1'}] }
+    const items = Firebase.database().ref('users/' + 'joel');
+    items.on('value', (snapshot) => {
+      const data = snapshot.val()
+      const convertedItems = Object.values(data.items)
+      // to convert key into string for React native flat list to render items key
+      convertedItems.map((item, index) => item.key = index.toString())
+      this.setState({ items: convertedItems })
+    });
+  }
+
   render() {
-    const testData = [
-      {
-        key: "0",
-        amount: 1,
-        desc: 'Food',
-        date: new Date()
-      },
-      {
-        key: "1",
-        amount: 2,
-        desc: 'Food',
-        date: new Date()
-      }
-    ]
+    const total = this.state.items.map(item => item.amount)
+    const totalAmount = total ? total.reduce((accumulator, currentValue) => accumulator + currentValue) : 0
 
-    let totalArr =0;
-
-    for (let i = 0; i < testData.length; i++){
-      totalArr = totalArr + testData[i].amount
-    }
-
-    const total = testData.map(item => item.amount) // [1,2]
-    const totalAmount = total.reduce((accumulator, currentValue) => accumulator + currentValue)
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <Row desc={"Item1"} price={"100"}/>
-          <Row desc={"Item2"} price={"200"}/>
+          {/* <Row desc={"Item1"} price={"100"}/>
+          <Row desc={"Item2"} price={"200"}/> */}
           <FlatList
-            data={testData}
+            data={this.state.items}
             renderItem={({ item }) =>
               <View style={styles.card}>
                 <View style={styles.cardDate}>
-                  <Text>{item.date.toLocaleDateString()}</Text>
+                  <Text>{JSON.stringify(item.date)}</Text>
                 </View>
                 <View style={styles.cardRow}>
                   <Text>{item.desc}</Text>
@@ -71,8 +65,6 @@ export default class HomeScreen extends React.Component {
         <View style={styles.tabBarInfoContainer}>
           <Text style={{fontWeight: 'bold'}}>Total</Text>
           <Text style={{fontWeight: 'bold'}}>RM {totalAmount}</Text>
-
-          <Text style={{fontWeight: 'bold'}}>Kobe - RM {totalArr}</Text>
         </View>
       </View>
     );

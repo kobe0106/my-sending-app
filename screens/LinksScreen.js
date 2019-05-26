@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { TextInput } from 'react-native-gesture-handler';
 import { ImagePicker, Permissions } from "expo";
+import { Firebase } from "../api/config.js";
 
 export default class LinksScreen extends React.Component {
   static navigationOptions = {
@@ -21,12 +22,22 @@ export default class LinksScreen extends React.Component {
 
   state = { userInput: '123', amount: '', desc: '', date: new Date(), image: null }
 
+  handleAddItem = () => {
+    Firebase.database().ref('users/' + 'joel' + '/items').push().set(
+      {
+        amount: Number(this.state.amount),
+        desc: this.state.desc,
+        date: this.state.date.toLocaleDateString()
+      }
+    )
+  }
+
   render() {
     const { image } = this.state;
     return (
       <View style={styles.container}>
         <Text>{this.state.userInput}</Text>
-        <ScrollView>
+        <ScrollView keyboardDismissMode={'on-drag'}>
           <View style={styles.row}>
             <Text style={{ fontSize: 18 }}>Price</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -110,7 +121,7 @@ export default class LinksScreen extends React.Component {
               )}
            </View>
         </ScrollView>
-        <TouchableOpacity onPress={() => alert(JSON.stringify(this.state))} style={styles.tabBarStickyBottom}>
+        <TouchableOpacity onPress={this.handleAddItem} style={styles.tabBarStickyBottom}>
           <Text style={{ fontWeight: 'bold' }}>Add</Text>
         </TouchableOpacity>
       </View>
